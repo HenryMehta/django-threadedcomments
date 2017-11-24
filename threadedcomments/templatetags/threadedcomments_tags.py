@@ -100,7 +100,9 @@ class BaseThreadedCommentNode(AdminOverrideCommentNode):
         elif self.root_only:
             qs = qs.exclude(parent__isnull=False).order_by('-submit_date')
         elif self.newest:
-            qs = qs.order_by('-newest_activity', 'tree_path')
+            from threadedcomments.models import PATH_DIGITS
+            qs = qs.extra(select={ 'tree_path_root': 'SUBSTRING(tree_path, 1, %d)' % PATH_DIGITS }) \
+                .order_by('%stree_path_root' % ('-' if self.newest else ''), 'tree_path')
         return qs
 
 
